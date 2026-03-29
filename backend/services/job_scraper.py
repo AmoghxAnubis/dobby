@@ -96,3 +96,43 @@ class LinkedInScraper:
                 await browser.close()
 
         return jobs
+
+    async def scrape_job_description(self, url: str) -> str:
+        """Scrape the full job description from a specific LinkedIn job URL."""
+        description = ""
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=True)
+            context = await browser.new_context(
+                user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                viewport={"width": 1920, "height": 1080}
+            )
+            page = await context.new_page()
+
+            logger.info(f"Navigating to JD: {url}")
+            try:
+                await page.goto(url, wait_until="domcontentloaded", timeout=30000)
+                
+                # Check for "show more" button and click if exists (sometimes on public view)
+                try:
+                    show_more_btn = await page.query_selector("button.show-more-less-html__button")
+                    if show_more_btn:
+                        await show_more_btn.click()
+                        await page.wait_for_timeout(1000)
+                except Exception:
+                    pass
+                
+                # Public view JD text is usually here:
+                desc_elem = await page.query_selector("div.show-more-less-html__markup")
+                if not desc_elem:
+                    # Authenticated structure fallback
+                    desc_elem = await page.query_selector("div.jobs-description-content__text")
+                    
+                if desc_elem:
+                    description = await desc_elem.inner_text()
+                    
+            except Exception as e:
+                logger.error(f"Error scraping LinkedIn JD: {e}")
+            finally:
+                await browser.close()
+                
+        return description.strip()
