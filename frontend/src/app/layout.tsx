@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import Sidebar from "@/components/sidebar";
+import { Providers } from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "Dobby — AI Job-Hunting Agent",
@@ -16,17 +17,19 @@ export default function RootLayout({
   return (
     <html lang="en" className="h-full antialiased">
       <body className="min-h-full">
-        <Sidebar />
-        <main
-          style={{
-            marginLeft: "var(--sidebar-width)",
-            minHeight: "100vh",
-            padding: "var(--space-xl)",
-            transition: "margin-left 0.2s ease",
-          }}
-        >
-          {children}
-        </main>
+        <Providers>
+          <Sidebar />
+          <main
+            style={{
+              marginLeft: "var(--sidebar-width)",
+              minHeight: "100vh",
+              padding: "var(--space-xl)",
+              transition: "margin-left 0.2s ease",
+            }}
+          >
+            {children}
+          </main>
+        </Providers>
       </body>
     </html>
   );

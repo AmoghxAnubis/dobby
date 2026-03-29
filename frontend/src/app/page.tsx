@@ -11,6 +11,8 @@ import {
   Send,
 } from "lucide-react";
 
+import { useProfile } from "@/context/profile-context";
+
 // ─── Mock data for dashboard (will be replaced with API calls) ─────
 
 const metrics = [
@@ -26,12 +28,18 @@ const activityFeed = [
 ];
 
 export default function DashboardPage() {
+  const { profile, loading } = useProfile();
+
+  if (loading) return null;
+
   return (
     <div className="dashboard">
       {/* Header */}
       <div className="dashboard-header">
         <div>
-          <h1 className="dashboard-title">Dashboard</h1>
+          <h1 className="dashboard-title">
+            Good morning, {profile?.name ? profile.name.split(' ')[0] : 'Initiate'}
+          </h1>
           <p className="dashboard-subtitle">
             Your autonomous job hunt at a glance
           </p>
