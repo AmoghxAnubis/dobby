@@ -21,9 +21,9 @@ export default function RootLayout({
           <Sidebar />
           <main
             style={{
-              marginLeft: "var(--sidebar-width)",
+              marginLeft: "var(--current-sidebar-width, var(--sidebar-width))",
               minHeight: "100vh",
-              padding: "var(--space-xl)",
+              padding: "var(--space-2xl)",
               transition: "margin-left 0.2s ease",
             }}
           >
