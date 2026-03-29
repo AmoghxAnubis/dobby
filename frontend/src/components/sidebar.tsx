@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   LayoutDashboard,
   Search,
@@ -29,6 +29,13 @@ const navItems = [
 export default function Sidebar() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
+
+  useEffect(() => {
+    document.documentElement.style.setProperty(
+      "--current-sidebar-width",
+      collapsed ? "var(--sidebar-collapsed)" : "var(--sidebar-width)"
+    );
+  }, [collapsed]);
 
   return (
     <aside
@@ -152,6 +159,7 @@ export default function Sidebar() {
 
       <style jsx global>{`
         .sidebar-nav-item {
+          position: relative;
           display: flex;
           align-items: center;
           gap: var(--space-sm);
