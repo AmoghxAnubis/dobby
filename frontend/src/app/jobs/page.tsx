@@ -88,6 +88,50 @@ export default function JobDiscoveryPage() {
         </button>
       </div>
 
+      {/* Search & Filters */}
+      <div style={{ display: "flex", gap: "var(--space-sm)" }}>
+        <div style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-sm)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-primary)",
+          borderRadius: "var(--radius-sm)",
+          padding: "10px var(--space-md)",
+        }}>
+          <Search size={16} style={{ color: "var(--text-tertiary)" }} />
+          <input
+            type="text"
+            placeholder="Search jobs by role, company, or keywords..."
+            style={{
+              flex: 1,
+              background: "transparent",
+              border: "none",
+              outline: "none",
+              color: "var(--text-primary)",
+              fontSize: 14,
+              fontFamily: "var(--font-body)",
+            }}
+          />
+        </div>
+        <button style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "var(--space-xs)",
+          background: "var(--bg-card)",
+          border: "1px solid var(--border-primary)",
+          borderRadius: "var(--radius-sm)",
+          padding: "10px var(--space-md)",
+          color: "var(--text-secondary)",
+          cursor: "pointer",
+          fontSize: 13,
+          fontFamily: "var(--font-body)",
+        }}>
+          Filters
+        </button>
+      </div>
+
       {scrapeResult && (
         <div style={{
           padding: "var(--space-md)",
