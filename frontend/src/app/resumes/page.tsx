@@ -45,7 +45,7 @@ export default function ResumesPage() {
         }}>
           No resumes yet
         </h3>
-        <p style={{ fontSize: 13, color: "var(--text-tertiary)", margin: 0, maxWidth: 400, margin: "0 auto" }}>
+        <p style={{ fontSize: 13, color: "var(--text-tertiary)", margin: "0 auto", maxWidth: 400 }}>
           Upload your master resume and Dobby will create tailored versions for each job application.
         </p>
       </div>
