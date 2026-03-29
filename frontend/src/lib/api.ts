@@ -75,6 +75,8 @@ export const jobsApi = {
   get: (id: string) => request(`/api/jobs/${id}`),
   scored: (profileId: string, minScore = 0) =>
     request(`/api/jobs/scored/?profile_id=${profileId}&min_score=${minScore}`),
+  scrape: (profileId: string) => 
+    request<{message: string, scraped: number, inserted: number}>(`/api/jobs/scrape?profile_id=${profileId}`, { method: "POST" }),
 };
 
 // ─── Applications ────────────────────────────────────────────
