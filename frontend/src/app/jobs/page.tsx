@@ -172,93 +172,176 @@ export default function JobDiscoveryPage() {
       ) : (
         <div style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))",
+          gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
           gap: "var(--space-lg)"
         }}>
           {jobs.map((job) => (
-            <div key={job.id} className="card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
-              {/* Card Header: Role & Company */}
-              <div>
-                <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 4px 0" }}>
-                  {job.role}
-                </h3>
-                <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-secondary)", fontSize: 14 }}>
-                  <Building size={14} />
-                  <span>{job.company}</span>
-                </div>
-              </div>
-
-              {/* Tags: Location, Remote */}
-              <div style={{ display: "flex", gap: "var(--space-xs)", flexWrap: "wrap", marginTop: "auto" }}>
-                {job.location && (
-                  <span style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    fontSize: 12,
-                    padding: "4px 8px",
-                    borderRadius: "var(--radius-full)",
-                    background: "var(--bg-document)",
-                    color: "var(--text-secondary)",
-                  }}>
-                    <MapPin size={12} />
-                    {job.location}
-                  </span>
-                )}
-                {job.remote && (
-                  <span style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 4,
-                    fontSize: 12,
-                    padding: "4px 8px",
-                    borderRadius: "var(--radius-full)",
-                    background: "rgba(10, 132, 255, 0.1)",
-                    color: "var(--accent-blue)",
-                  }}>
-                    <Globe size={12} />
-                    Remote
-                  </span>
-                )}
-              </div>
-
-              {/* Footer Actions */}
-              <div style={{ 
-                borderTop: "1px solid var(--border-primary)", 
-                paddingTop: "var(--space-sm)", 
-                marginTop: "var(--space-xs)",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center"
-              }}>
-                <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
-                  {new Date(job.scraped_at).toLocaleDateString()}
-                </span>
-                
-                <a 
-                  href={job.url} 
-                  target="_blank" 
-                  rel="noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                    fontSize: 13,
-                    color: "var(--text-primary)",
-                    textDecoration: "none",
-                    fontWeight: 500,
-                    transition: "color 0.15s ease",
-                  }}
-                  onMouseOver={(e) => e.currentTarget.style.color = "var(--text-secondary)"}
-                  onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}
-                >
-                  View Job <ExternalLink size={14} />
-                </a>
-              </div>
-            </div>
+            <JobCard key={job.id} job={job} profileId={profile?.id} />
           ))}
         </div>
       )}
     </div>
   );
 }
+
+// ─── standalone JobCard Component ──────────────────────────────
+
+function JobCard({ job, profileId }: { job: Job, profileId?: string }) {
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [score, setScore] = useState<any>(null);
+
+  const handleAnalyze = async () => {
+    if (!profileId) return;
+    setIsAnalyzing(true);
+    try {
+      // Use jobsApi.analyze here. Needs import of Zap icon
+      const res = await jobsApi.analyze(job.id, profileId);
+      setScore(res);
+    } catch (err) {
+      console.error("Failed to analyze job:", err);
+      // fallback error visually if needed
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  return (
+    <div className="card" style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
+      {/* Card Header: Role & Company */}
+      <div>
+        <h3 style={{ fontSize: 16, fontWeight: 600, color: "var(--text-primary)", margin: "0 0 4px 0", lineHeight: 1.3 }}>
+          {job.role}
+        </h3>
+        <div style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-secondary)", fontSize: 14 }}>
+          <Building size={14} />
+          <span>{job.company}</span>
+        </div>
+      </div>
+
+      {/* Tags: Location, Remote */}
+      <div style={{ display: "flex", gap: "var(--space-xs)", flexWrap: "wrap" }}>
+        {job.location && (
+          <span style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            fontSize: 12,
+            padding: "4px 8px",
+            borderRadius: "var(--radius-full)",
+            background: "rgba(255, 255, 255, 0.05)",
+            color: "var(--text-secondary)",
+          }}>
+            <MapPin size={12} />
+            {job.location}
+          </span>
+        )}
+        {job.remote && (
+          <span style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 4,
+            fontSize: 12,
+            padding: "4px 8px",
+            borderRadius: "var(--radius-full)",
+            background: "rgba(10, 132, 255, 0.1)",
+            color: "var(--accent-blue)",
+          }}>
+            <Globe size={12} />
+            Remote
+          </span>
+        )}
+      </div>
+
+      {/* Match Score Display (if analyzed) */}
+      {score && (
+        <div style={{ 
+          background: "var(--bg-elevated)", 
+          padding: "var(--space-md)", 
+          borderRadius: "var(--radius-sm)",
+          border: `1px solid ${score.relevance_score >= 7 ? 'rgba(50, 215, 75, 0.3)' : 'var(--border-primary)'}`,
+          marginTop: "var(--space-xs)"
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 8 }}>
+            <span style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.05em", color: "var(--text-secondary)", fontWeight: 600 }}>AI Match Score</span>
+            <span style={{ 
+              fontSize: 24, 
+              fontWeight: 700, 
+              color: score.relevance_score >= 7 ? "var(--accent-green)" : score.relevance_score >= 4 ? "var(--accent-orange)" : "var(--accent-red)",
+              fontFamily: "var(--font-heading)"
+            }}>
+              {score.relevance_score}/10
+            </span>
+          </div>
+          <div style={{ fontSize: 13, color: "var(--text-secondary)", lineHeight: 1.5, whiteSpace: "pre-wrap" }}>
+            {score.analysis}
+          </div>
+          <div style={{ display: "flex", gap: "var(--space-md)", marginTop: "var(--space-sm)", fontSize: 12, color: "var(--text-tertiary)" }}>
+            <span>Skills: <strong>{score.skill_match}%</strong></span>
+            <span>ATS: <strong>{score.ats_score}%</strong></span>
+          </div>
+        </div>
+      )}
+
+      <div style={{ flex: 1 }} /> {/* spacer */}
+
+      {/* Footer Actions */}
+      <div style={{ 
+        borderTop: "1px solid var(--border-primary)", 
+        paddingTop: "var(--space-sm)", 
+        marginTop: "var(--space-xs)",
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center"
+      }}>
+        {!score ? (
+          <button 
+            onClick={handleAnalyze} 
+            disabled={isAnalyzing}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 6,
+              fontSize: 13,
+              background: "transparent",
+              color: "var(--accent-purple)",
+              border: "1px solid rgba(191, 90, 242, 0.3)",
+              padding: "4px 10px",
+              borderRadius: "var(--radius-full)",
+              cursor: isAnalyzing ? "not-allowed" : "pointer",
+              opacity: isAnalyzing ? 0.7 : 1,
+              fontWeight: 500
+            }}
+          >
+            {isAnalyzing ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+            {isAnalyzing ? "Analyzing..." : "Analyze Fit"}
+          </button>
+        ) : (
+          <span style={{ fontSize: 12, color: "var(--text-tertiary)" }}>
+            Analyzed {new Date().toLocaleDateString()}
+          </span>
+        )}
+        
+        <a 
+          href={job.url} 
+          target="_blank" 
+          rel="noreferrer"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            fontSize: 13,
+            color: "var(--text-primary)",
+            textDecoration: "none",
+            fontWeight: 500,
+            transition: "color 0.15s ease",
+          }}
+          onMouseOver={(e) => e.currentTarget.style.color = "var(--text-secondary)"}
+          onMouseOut={(e) => e.currentTarget.style.color = "var(--text-primary)"}
+        >
+          View Job <ExternalLink size={14} />
+        </a>
+      </div>
+    </div>
+  );
+}
+
