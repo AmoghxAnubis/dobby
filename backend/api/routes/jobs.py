@@ -91,6 +91,77 @@ async def trigger_job_scrape(profile_id: str):
         "inserted": inserted_count
     }
 
+
+@router.post("/{job_id}/analyze")
+async def analyze_job(job_id: str, profile_id: str):
+    """
+    On-demand endpoint to deeply scrape a job description (if missing)
+    and analyze it against the user's profile using Gemini.
+    """
+    client = get_supabase_client()
+
+    # 1. Fetch Job
+    job_res = client.table("jobs").select("*").eq("id", job_id).execute()
+    if not job_res.data:
+        raise HTTPException(status_code=404, detail="Job not found")
+    job = job_res.data[0]
+
+    # 2. Scrape deep description if missing
+    if not job.get("description"):
+        scraper = LinkedInScraper()
+        try:
+            desc = await scraper.scrape_job_description(job["url"])
+            if desc:
+                # Update DB cache
+                client.table("jobs").update({"description": desc}).eq("id", job_id).execute()
+                job["description"] = desc
+            else:
+                raise Exception("Failed to extract description text")
+        except Exception as e:
+            logger.error(f"Failed to scrape job description: {e}")
+            raise HTTPException(status_code=500, detail="Could not scrape job description from source.")
+
+    # 3. Fetch Profile and Preferences
+    prof_res = client.table("profiles").select("*").eq("id", profile_id).execute()
+    pref_res = client.table("job_preferences").select("*").eq("profile_id", profile_id).execute()
+    
+    if not prof_res.data or not pref_res.data:
+        raise HTTPException(status_code=404, detail="Profile or Preferences not found")
+        
+    profile = prof_res.data[0]
+    preferences = pref_res.data[0]
+
+    # 4. Analyze with Gemini
+    from services.analyzer import JobAnalyzer
+    analyzer = JobAnalyzer()
+    
+    analysis_result = await analyzer.analyze_job_match(job, profile, preferences)
+
+    # 5. Save Score to Database (Upsert style by checking first or just inserting if unique)
+    # The unique constraint is on (job_id, profile_id). We can do an upsert or check manually.
+    existing_score = client.table("job_scores").select("id").eq("job_id", job_id).eq("profile_id", profile_id).execute()
+    
+    score_data = {
+        "job_id": job_id,
+        "profile_id": profile_id,
+        "relevance_score": analysis_result.get("relevance_score", 0),
+        "skill_match": analysis_result.get("skill_match", 0),
+        "ats_score": analysis_result.get("ats_score", 0),
+        "should_apply": analysis_result.get("should_apply", False),
+        "analysis": analysis_result.get("analysis", "")
+    }
+
+    if existing_score.data:
+        # Update existing
+        score_id = existing_score.data[0]["id"]
+        res = client.table("job_scores").update(score_data).eq("id", score_id).execute()
+    else:
+        # Insert new
+        res = client.table("job_scores").insert(score_data).execute()
+
+    return res.data[0] if res.data else score_data
+
+
 @router.get("/")
 async def list_jobs(
     platform: Optional[str] = None,
