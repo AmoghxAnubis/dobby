@@ -8,7 +8,7 @@ from database.supabase_client import get_supabase_client
 from database.models import (
     ProfileCreate,
     ProfileUpdate,
-    JobPreferencesCreate,
+    JobPreferencesBase,
     JobPreferencesUpdate,
 )
 
@@ -70,7 +70,7 @@ async def delete_profile(profile_id: str):
 # ─── Job Preferences CRUD ─────────────────────────────────
 
 @router.post("/{profile_id}/preferences")
-async def create_preferences(profile_id: str, prefs: JobPreferencesCreate):
+async def create_preferences(profile_id: str, prefs: JobPreferencesBase):
     """Create job preferences for a profile."""
     client = get_supabase_client()
     data = prefs.model_dump()
