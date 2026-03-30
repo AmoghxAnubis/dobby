@@ -3,10 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   Search, MapPin, Building, Globe, ExternalLink, Play, Loader2,
-  Briefcase, Zap, SlidersHorizontal, Sparkles, TrendingUp, Filter,
+  Briefcase, Zap, SlidersHorizontal, Sparkles, TrendingUp, Filter, FileText, CheckCircle2
 } from "lucide-react";
 import { useProfile } from "@/context/profile-context";
-import { jobsApi } from "@/lib/api";
+import { jobsApi, documentsApi } from "@/lib/api";
 
 // ─── Types ─────────────────────────────────────────────────────
 
@@ -403,7 +403,23 @@ function JobCard({ job, profileId, existingScore, onScoreUpdate }: {
   onScoreUpdate: (jobId: string, score: JobScore) => void;
 }) {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [isGeneratingDocs, setIsGeneratingDocs] = useState(false);
+  const [docsGenerated, setDocsGenerated] = useState(false);
   const score = existingScore;
+
+  const handleGenerateDocs = async () => {
+    if (!profileId) return;
+    setIsGeneratingDocs(true);
+    try {
+      await documentsApi.generateResume(profileId, job.id);
+      await documentsApi.generateCoverLetter(profileId, job.id);
+      setDocsGenerated(true);
+    } catch (err) {
+      console.error("Failed to generate docs:", err);
+    } finally {
+      setIsGeneratingDocs(false);
+    }
+  };
 
   const handleAnalyze = async () => {
     if (!profileId) return;
@@ -598,26 +614,56 @@ function JobCard({ job, profileId, existingScore, onScoreUpdate }: {
             {isAnalyzing ? "Analyzing…" : "Analyze Fit"}
           </button>
         ) : (
-          <button
-            onClick={handleAnalyze}
-            disabled={isAnalyzing}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 5,
-              fontSize: 12,
-              background: "transparent",
-              color: "var(--text-tertiary)",
-              border: "1px solid var(--border-primary)",
-              padding: "4px 10px",
-              borderRadius: "var(--radius-full)",
-              cursor: isAnalyzing ? "not-allowed" : "pointer",
-              fontWeight: 500,
-            }}
-          >
-            {isAnalyzing ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={12} />}
-            {isAnalyzing ? "Re-analyzing…" : "Re-analyze"}
-          </button>
+          <div style={{ display: "flex", gap: "var(--space-sm)", flexWrap: "wrap" }}>
+            <button
+              onClick={handleAnalyze}
+              disabled={isAnalyzing}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 12,
+                background: "transparent",
+                color: "var(--text-tertiary)",
+                border: "1px solid var(--border-primary)",
+                padding: "4px 10px",
+                borderRadius: "var(--radius-full)",
+                cursor: isAnalyzing ? "not-allowed" : "pointer",
+                fontWeight: 500,
+              }}
+            >
+              {isAnalyzing ? <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} /> : <Sparkles size={12} />}
+              {isAnalyzing ? "Re-analyzing…" : "Re-analyze"}
+            </button>
+            <button
+              onClick={handleGenerateDocs}
+              disabled={isGeneratingDocs || docsGenerated}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 12,
+                background: docsGenerated ? "rgba(50, 215, 75, 0.1)" : "transparent",
+                color: docsGenerated ? "var(--accent-green)" : "var(--accent-blue)",
+                border: `1px solid ${docsGenerated ? "rgba(50, 215, 75, 0.3)" : "rgba(10, 132, 255, 0.3)"}`,
+                padding: "4px 12px",
+                borderRadius: "var(--radius-full)",
+                cursor: (isGeneratingDocs || docsGenerated) ? "not-allowed" : "pointer",
+                fontWeight: 600,
+                opacity: isGeneratingDocs ? 0.7 : 1,
+                transition: "all 0.2s ease"
+              }}
+            >
+              {isGeneratingDocs ? (
+                <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />
+              ) : docsGenerated ? (
+                <CheckCircle2 size={12} />
+              ) : (
+                <FileText size={12} />
+              )}
+              {isGeneratingDocs ? "Generating Docs…" : docsGenerated ? "Docs Generated" : "Generate Docs"}
+            </button>
+          </div>
         )}
 
         <a

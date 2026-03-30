@@ -94,6 +94,20 @@ export const applicationsApi = {
     request(`/api/applications/${id}`, { method: "PATCH", body: data }),
 };
 
+// ─── Documents ───────────────────────────────────────────────
+
+export const documentsApi = {
+  generateResume: (profileId: string, jobId: string) =>
+    request("/api/documents/resume/generate", { method: "POST", body: { profile_id: profileId, job_id: jobId } }),
+  generateCoverLetter: (profileId: string, jobId: string) =>
+    request("/api/documents/cover-letter/generate", { method: "POST", body: { profile_id: profileId, job_id: jobId } }),
+  listResumes: (profileId: string) =>
+    request(`/api/documents/resumes?profile_id=${profileId}`),
+  // Note: download is usually handled via an anchor tag pointing directly to the URL, 
+  // but we can expose the URL generator here.
+  getDownloadUrl: (resumeId: string) => `${API_BASE}/api/documents/resume/${resumeId}/download`,
+};
+
 // ─── Health ──────────────────────────────────────────────────
 
 export const healthApi = {
