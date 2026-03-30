@@ -79,6 +79,8 @@ export const jobsApi = {
     request<{message: string, scraped: number, inserted: number}>(`/api/jobs/scrape?profile_id=${profileId}`, { method: "POST" }),
   analyze: (jobId: string, profileId: string) =>
     request<any>(`/api/jobs/${jobId}/analyze?profile_id=${profileId}`, { method: "POST" }),
+  batchScores: (profileId: string) =>
+    request<Record<string, any>>(`/api/jobs/scores/batch?profile_id=${profileId}`),
 };
 
 // ─── Applications ────────────────────────────────────────────
