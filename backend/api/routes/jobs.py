@@ -182,6 +182,23 @@ async def list_jobs(
     return result.data
 
 
+@router.get("/scores/batch")
+async def batch_scores(profile_id: str):
+    """Get all existing scores for a profile, keyed by job_id."""
+    client = get_supabase_client()
+    result = (
+        client.table("job_scores")
+        .select("*")
+        .eq("profile_id", profile_id)
+        .execute()
+    )
+    # Return as a dict keyed by job_id for easy frontend lookup
+    scores_map = {}
+    for row in result.data:
+        scores_map[row["job_id"]] = row
+    return scores_map
+
+
 @router.get("/{job_id}")
 async def get_job(job_id: str):
     """Get a specific job by ID."""
