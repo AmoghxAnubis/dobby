@@ -6,7 +6,7 @@ The main application with CORS, router registration, and health check.
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from config.settings import get_settings
-from api.routes import profile, jobs, applications, recruiters
+from api.routes import profile, jobs, applications, recruiters, documents
 
 settings = get_settings()
 
@@ -33,6 +33,7 @@ app.include_router(profile.router, prefix="/api")
 app.include_router(jobs.router, prefix="/api")
 app.include_router(applications.router, prefix="/api")
 app.include_router(recruiters.router, prefix="/api")
+app.include_router(documents.router, prefix="/api")
 
 
 @app.get("/health")
