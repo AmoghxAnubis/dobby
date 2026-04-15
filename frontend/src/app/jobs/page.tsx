@@ -171,24 +171,45 @@ export default function JobDiscoveryPage() {
           </p>
         </div>
 
-        <button
-          className="btn btn-primary"
-          onClick={handleScrape}
-          disabled={isScraping || !profile?.id}
-          style={{ width: "fit-content" }}
-        >
-          {isScraping ? (
-            <>
-              <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
-              Running Playwright Scraper…
-            </>
-          ) : (
-            <>
-              <Play size={16} />
-              Run Job Scraper
-            </>
-          )}
-        </button>
+        <div style={{ display: "flex", gap: "var(--space-sm)" }}>
+          <button
+            className="btn btn-secondary"
+            onClick={handleSync}
+            disabled={isSyncing}
+            style={{ width: "fit-content", background: "rgba(50, 215, 75, 0.1)", color: "var(--accent-green)", border: "1px solid rgba(50, 215, 75, 0.3)" }}
+          >
+            {isSyncing ? (
+              <>
+                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                Syncing Live Jobs…
+              </>
+            ) : (
+              <>
+                <Play size={16} />
+                Sync Live Jobs (API)
+              </>
+            )}
+          </button>
+          
+          <button
+            className="btn btn-primary"
+            onClick={handleScrape}
+            disabled={isScraping || !profile?.id}
+            style={{ width: "fit-content" }}
+          >
+            {isScraping ? (
+              <>
+                <Loader2 size={16} style={{ animation: "spin 1s linear infinite" }} />
+                Running Playwright Scraper…
+              </>
+            ) : (
+              <>
+                <Play size={16} />
+                Run Job Scraper
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
       {/* Stats Row */}
