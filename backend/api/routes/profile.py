@@ -3,7 +3,7 @@ Dobby — Profile API Routes
 CRUD endpoints for user profile and job preferences.
 """
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, File, UploadFile
 from database.supabase_client import get_supabase_client
 from database.models import (
     ProfileCreate,
@@ -11,6 +11,7 @@ from database.models import (
     JobPreferencesBase,
     JobPreferencesUpdate,
 )
+from services.resume_parser import parse_resume_to_profile
 
 router = APIRouter(prefix="/profile", tags=["profile"])
 
