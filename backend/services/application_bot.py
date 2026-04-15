@@ -50,19 +50,19 @@ class ApplicationBot:
                 # Attempt to find standard inputs
                 try:
                     # First Name
-                    first_name_loc = page.locator('input[name*="first"] i, input[id*="first"] i, input[placeholder*="First"] i').first
+                    first_name_loc = page.locator('input[name*="first" i], input[id*="first" i], input[placeholder*="First" i]').first
                     if await first_name_loc.is_visible(timeout=1000):
                         await first_name_loc.fill(name.split(" ")[0])
                         log["fields_filled"]["First Name"] = name.split(" ")[0]
 
                     # Last Name
-                    last_name_loc = page.locator('input[name*="last"] i, input[id*="last"] i, input[placeholder*="Last"] i').first
+                    last_name_loc = page.locator('input[name*="last" i], input[id*="last" i], input[placeholder*="Last" i]').first
                     if await last_name_loc.is_visible(timeout=1000):
                         await last_name_loc.fill(name.split(" ")[-1])
                         log["fields_filled"]["Last Name"] = name.split(" ")[-1]
                         
                     # Email
-                    email_loc = page.locator('input[type="email"] i, input[name*="email"] i, input[id*="email"] i').first
+                    email_loc = page.locator('input[type="email" i], input[name*="email" i], input[id*="email" i]').first
                     if await email_loc.is_visible(timeout=1000):
                         await email_loc.fill(email)
                         log["fields_filled"]["Email Address"] = email
