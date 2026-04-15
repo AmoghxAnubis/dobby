@@ -92,6 +92,8 @@ export const applicationsApi = {
     request("/api/applications/", { method: "POST", body: data }),
   update: (id: string, data: Record<string, unknown>) =>
     request(`/api/applications/${id}`, { method: "PATCH", body: data }),
+  apply: (profileId: string, jobId: string) =>
+    request("/api/applications/apply", { method: "POST", body: { profile_id: profileId, job_id: jobId } }),
 };
 
 // ─── Documents ───────────────────────────────────────────────
