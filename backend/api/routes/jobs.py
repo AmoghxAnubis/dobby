@@ -7,6 +7,7 @@ from fastapi import APIRouter, HTTPException, Query
 from database.supabase_client import get_supabase_client
 from database.models import JobCreate
 from services.job_scraper import LinkedInScraper
+from services.job_discovery_live import fetch_live_jobs
 from typing import Optional, List
 import logging
 
@@ -14,6 +15,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
+@router.post("/sync")
+async def sync_live_jobs(limit: int = 15):
+    """
+    Sync top live remote jobs from Remotive API into Dobby.
+    """
+    try:
+        inserted = await fetch_live_jobs(limit=limit)
+        return {"message": "Success", "inserted": len(inserted)}
+    except Exception as e:
+        logger.error(f"Sync failed: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 @router.post("/scrape")
 async def trigger_job_scrape(profile_id: str):
