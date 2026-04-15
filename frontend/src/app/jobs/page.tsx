@@ -431,8 +431,9 @@ function JobCard({ job, profileId, existingScore, onScoreUpdate }: {
       await documentsApi.generateResume(profileId, job.id);
       await documentsApi.generateCoverLetter(profileId, job.id);
       setDocsGenerated(true);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Failed to generate docs:", err);
+      alert(err.message || "Failed to generate documents. (This could be a Gemini API rate limit if used too frequently.)");
     } finally {
       setIsGeneratingDocs(false);
     }
@@ -680,36 +681,35 @@ function JobCard({ job, profileId, existingScore, onScoreUpdate }: {
               )}
               {isGeneratingDocs ? "Generating Docs…" : docsGenerated ? "Docs Generated" : "Generate Docs"}
             </button>
-            {docsGenerated && (
-              <button
-                onClick={handleApply}
-                disabled={isApplying || applicationLog !== null}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 5,
-                  fontSize: 12,
-                  background: applicationLog ? (applicationLog.status === "error" ? "rgba(255, 59, 48, 0.1)" : "rgba(191, 90, 242, 0.1)") : "transparent",
-                  color: applicationLog ? (applicationLog.status === "error" ? "var(--accent-red)" : "var(--accent-purple)") : "var(--text-primary)",
-                  border: `1px solid ${applicationLog ? (applicationLog.status === "error" ? "rgba(255, 59, 48, 0.3)" : "rgba(191, 90, 242, 0.3)") : "var(--border-primary)"}`,
-                  padding: "4px 12px",
-                  borderRadius: "var(--radius-full)",
-                  cursor: (isApplying || applicationLog !== null) ? "not-allowed" : "pointer",
-                  fontWeight: 600,
-                  opacity: isApplying ? 0.7 : 1,
-                  transition: "all 0.2s ease"
-                }}
-              >
-                {isApplying ? (
-                  <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />
-                ) : applicationLog && applicationLog.status === "success" ? (
-                  <CheckCircle2 size={12} />
-                ) : (
-                  <Play size={12} />
-                )}
-                {isApplying ? "Running Bot…" : applicationLog ? (applicationLog.status === "error" ? "Bot Failed" : "Dry Run Complete") : "Apply (Dry Run)"}
-              </button>
-            )}
+            {/* Apply button is now unconditionally rendered for testing the bot */}
+            <button
+              onClick={handleApply}
+              disabled={isApplying || applicationLog !== null}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 5,
+                fontSize: 12,
+                background: applicationLog ? (applicationLog.status === "error" ? "rgba(255, 59, 48, 0.1)" : "rgba(191, 90, 242, 0.1)") : "transparent",
+                color: applicationLog ? (applicationLog.status === "error" ? "var(--accent-red)" : "var(--accent-purple)") : "var(--text-primary)",
+                border: `1px solid ${applicationLog ? (applicationLog.status === "error" ? "rgba(255, 59, 48, 0.3)" : "rgba(191, 90, 242, 0.3)") : "var(--border-primary)"}`,
+                padding: "4px 12px",
+                borderRadius: "var(--radius-full)",
+                cursor: (isApplying || applicationLog !== null) ? "not-allowed" : "pointer",
+                fontWeight: 600,
+                opacity: isApplying ? 0.7 : 1,
+                transition: "all 0.2s ease"
+              }}
+            >
+              {isApplying ? (
+                <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />
+              ) : applicationLog && applicationLog.status === "success" ? (
+                <CheckCircle2 size={12} />
+              ) : (
+                <Play size={12} />
+              )}
+              {isApplying ? "Running Bot…" : applicationLog ? (applicationLog.status === "error" ? "Bot Failed" : "Dry Run Complete") : "Apply (Dry Run)"}
+            </button>
           </div>
         )}
 
