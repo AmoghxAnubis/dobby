@@ -7,9 +7,47 @@ from fastapi import APIRouter, HTTPException, Query
 from database.supabase_client import get_supabase_client
 from database.models import ApplicationCreate, ApplicationUpdate
 from typing import Optional
+import json
+from pydantic import BaseModel
+from services.application_bot import ApplicationBot
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
+class ApplyRequest(BaseModel):
+    profile_id: str
+    job_id: str
+
+@router.post("/apply")
+async def execute_dry_run_application(req: ApplyRequest):
+    """Run an automated application (dry-run mode)."""
+    client = get_supabase_client()
+    
+    # Get profile data
+    profile_res = client.table("profiles").select("*").eq("id", req.profile_id).execute()
+    if not profile_res.data:
+        raise HTTPException(status_code=404, detail="Profile not found")
+    profile = profile_res.data[0]
+    
+    # Get Job URL
+    job_res = client.table("jobs").select("*").eq("id", req.job_id).execute()
+    if not job_res.data:
+        raise HTTPException(status_code=404, detail="Job not found")
+    job_url = job_res.data[0]["url"]
+    
+    # Initialize Bot
+    bot = ApplicationBot()
+    log = await bot.apply_to_job(job_url, profile, dry_run=True)
+    
+    # Map back to application in DB
+    app_data = {
+        "job_id": req.job_id,
+        "profile_id": req.profile_id,
+        "status": "applied",
+        "notes": json.dumps(log, indent=2)
+    }
+    result = client.table("applications").insert(app_data).execute()
+    
+    return {"log": log, "application_id": result.data[0]["id"] if result.data else None}
 
 @router.post("/")
 async def create_application(application: ApplicationCreate):
