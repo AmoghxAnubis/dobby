@@ -99,6 +99,20 @@ export default function JobDiscoveryPage() {
     }
   };
 
+  const [isSyncing, setIsSyncing] = useState(false);
+  const handleSync = async () => {
+    setIsSyncing(true);
+    try {
+      await jobsApi.syncLiveJobs(15);
+      await fetchJobs();
+    } catch (err) {
+      console.error("Sync failed:", err);
+      alert("Failed to sync live jobs");
+    } finally {
+      setIsSyncing(false);
+    }
+  };
+
   // ── Callback to update a single score in the map ─────────
 
   const onScoreUpdate = useCallback((jobId: string, score: JobScore) => {
