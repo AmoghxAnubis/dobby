@@ -28,14 +28,13 @@ async def fetch_live_jobs(limit: int = 15) -> List[Dict[str, Any]]:
             for job in jobs:
                 # Map Remotive schema to Dobby schema
                 job_data = {
-                    "title": job.get("title", ""),
+                    "role": job.get("title", ""),
                     "company": job.get("company_name", ""),
                     "location": job.get("candidate_required_location", "Remote"),
                     "description": job.get("description", ""), # HTML
                     "url": job.get("url", ""),
-                    "salary_info": job.get("salary", "Competitive"),
-                    "source": "remotive",
-                    "requirements": [], # We can leave empty, analyzer will use description
+                    "salary": job.get("salary", "Competitive"),
+                    "platform": "remotive",
                 }
                 
                 # Check if exists by URL
