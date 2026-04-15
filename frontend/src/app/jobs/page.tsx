@@ -6,7 +6,7 @@ import {
   Briefcase, Zap, SlidersHorizontal, Sparkles, TrendingUp, Filter, FileText, CheckCircle2
 } from "lucide-react";
 import { useProfile } from "@/context/profile-context";
-import { jobsApi, documentsApi } from "@/lib/api";
+import { jobsApi, documentsApi, applicationsApi } from "@/lib/api";
 
 // ─── Types ─────────────────────────────────────────────────────
 
@@ -405,7 +405,24 @@ function JobCard({ job, profileId, existingScore, onScoreUpdate }: {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [isGeneratingDocs, setIsGeneratingDocs] = useState(false);
   const [docsGenerated, setDocsGenerated] = useState(false);
+  const [isApplying, setIsApplying] = useState(false);
+  const [applicationLog, setApplicationLog] = useState<{status:string; message:string} | null>(null);
   const score = existingScore;
+
+  const handleApply = async () => {
+    if (!profileId) return;
+    setIsApplying(true);
+    setApplicationLog(null);
+    try {
+      const res = await applicationsApi.apply(profileId, job.id);
+      setApplicationLog(res.log);
+    } catch (err) {
+      console.error("Apply failed:", err);
+      setApplicationLog({ status: "error", message: "Failed to run application bot" });
+    } finally {
+      setIsApplying(false);
+    }
+  };
 
   const handleGenerateDocs = async () => {
     if (!profileId) return;
@@ -663,6 +680,36 @@ function JobCard({ job, profileId, existingScore, onScoreUpdate }: {
               )}
               {isGeneratingDocs ? "Generating Docs…" : docsGenerated ? "Docs Generated" : "Generate Docs"}
             </button>
+            {docsGenerated && (
+              <button
+                onClick={handleApply}
+                disabled={isApplying || applicationLog !== null}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 5,
+                  fontSize: 12,
+                  background: applicationLog ? (applicationLog.status === "error" ? "rgba(255, 59, 48, 0.1)" : "rgba(191, 90, 242, 0.1)") : "transparent",
+                  color: applicationLog ? (applicationLog.status === "error" ? "var(--accent-red)" : "var(--accent-purple)") : "var(--text-primary)",
+                  border: `1px solid ${applicationLog ? (applicationLog.status === "error" ? "rgba(255, 59, 48, 0.3)" : "rgba(191, 90, 242, 0.3)") : "var(--border-primary)"}`,
+                  padding: "4px 12px",
+                  borderRadius: "var(--radius-full)",
+                  cursor: (isApplying || applicationLog !== null) ? "not-allowed" : "pointer",
+                  fontWeight: 600,
+                  opacity: isApplying ? 0.7 : 1,
+                  transition: "all 0.2s ease"
+                }}
+              >
+                {isApplying ? (
+                  <Loader2 size={12} style={{ animation: "spin 1s linear infinite" }} />
+                ) : applicationLog && applicationLog.status === "success" ? (
+                  <CheckCircle2 size={12} />
+                ) : (
+                  <Play size={12} />
+                )}
+                {isApplying ? "Running Bot…" : applicationLog ? (applicationLog.status === "error" ? "Bot Failed" : "Dry Run Complete") : "Apply (Dry Run)"}
+              </button>
+            )}
           </div>
         )}
 
