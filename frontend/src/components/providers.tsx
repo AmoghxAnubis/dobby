@@ -19,6 +19,41 @@ function OnboardingModal() {
   const [roles, setRoles] = useState("");
   const [locations, setLocations] = useState("");
 
+  const [isUploading, setIsUploading] = useState(false);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      alert("Please upload a PDF file.");
+      return;
+    }
+    setIsUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+    try {
+      const res = await fetch("http://localhost:8000/api/profile/upload-cv", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      if (res.ok && data.status === "success") {
+        const pd = data.data;
+        setName(pd.name || "");
+        setEmail(pd.email || "");
+        if (pd.skills && pd.skills.length > 0) {
+          setSkills(pd.skills.join(", "));
+        }
+      } else {
+        alert("Failed to parse resume: " + (data.detail || "Unknown error"));
+      }
+    } catch (err: any) {
+      alert("Upload failed. Make sure backend is running.");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
   if (loading || !isNewUser) return null;
 
   const handleNext = () => {
@@ -80,6 +115,13 @@ function OnboardingModal() {
           </div>
           
           <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div style={{ padding: "16px", border: "1px dashed var(--border-primary)", borderRadius: "8px", textAlign: "center", background: "rgba(255,255,255,0.02)" }}>
+              <p style={{ margin: "0 0 8px", fontSize: 13, color: "var(--text-secondary)" }}>
+                {isUploading ? "Extracting from CV with Gemini..." : "Upload your existing CV (PDF) to auto-fill"}
+              </p>
+              <input type="file" accept="application/pdf" onChange={handleFileUpload} disabled={isUploading} style={{ fontSize: 12, color: "var(--text-tertiary)" }} />
+            </div>
+            <div style={{ textAlign: "center", fontSize: 12, color: "var(--text-tertiary)", margin: "-8px 0" }}>OR</div>
             <div>
               <label style={{ display: "block", fontSize: 12, fontWeight: 500, color: "var(--text-secondary)", marginBottom: 6, textTransform: "uppercase" }}>Full Name</label>
               <input value={name} onChange={e => setName(e.target.value)} placeholder="Jane Doe" style={{ width: "100%", padding: "10px 16px", background: "var(--bg-primary)", border: "1px solid var(--border-primary)", borderRadius: 6, color: "white" }} />

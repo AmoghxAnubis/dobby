@@ -18,6 +18,19 @@ router = APIRouter(prefix="/profile", tags=["profile"])
 
 # ─── Profile CRUD ─────────────────────────────────────────
 
+@router.post("/upload-cv")
+async def upload_cv(file: UploadFile = File(...)):
+    """Uploads a PDF resume and extracts the fields using Gemini."""
+    if not file.filename.endswith(".pdf"):
+        raise HTTPException(status_code=400, detail="Only PDF files are supported at this time.")
+    
+    try:
+        content = await file.read()
+        parsed_data = await parse_resume_to_profile(content, file.filename)
+        return {"status": "success", "data": parsed_data}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
 @router.post("/")
 async def create_profile(profile: ProfileCreate):
     """Create a new user profile."""
