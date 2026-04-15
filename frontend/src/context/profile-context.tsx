@@ -43,7 +43,7 @@ interface ProfileContextType {
   isNewUser: boolean;
   refreshProfile: () => Promise<void>;
   saveProfile: (data: Partial<Profile>) => Promise<Profile>;
-  savePreferences: (data: Partial<JobPreferences>) => Promise<JobPreferences>;
+  savePreferences: (data: Partial<JobPreferences>, overrideProfileId?: string) => Promise<JobPreferences>;
 }
 
 const ProfileContext = createContext<ProfileContextType | null>(null);
@@ -107,15 +107,16 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     }
   }, [profile]);
 
-  const savePreferences = useCallback(async (data: Partial<JobPreferences>): Promise<JobPreferences> => {
-    if (!profile) throw new Error("Profile must be created first");
+  const savePreferences = useCallback(async (data: Partial<JobPreferences>, overrideProfileId?: string): Promise<JobPreferences> => {
+    const targetProfileId = overrideProfileId || profile?.id;
+    if (!targetProfileId) throw new Error("Profile must be created first");
 
     if (preferences) {
-      const updated = await preferencesApi.update(profile.id, data) as JobPreferences;
+      const updated = await preferencesApi.update(targetProfileId, data) as JobPreferences;
       setPreferences(updated);
       return updated;
     } else {
-      const created = await preferencesApi.create(profile.id, data as Record<string, unknown>) as JobPreferences;
+      const created = await preferencesApi.create(targetProfileId, data as Record<string, unknown>) as JobPreferences;
       setPreferences(created);
       return created;
     }

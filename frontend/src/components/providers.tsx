@@ -66,7 +66,7 @@ function OnboardingModal() {
     if (!roles || !locations) return;
     setSaving(true);
     try {
-      await saveProfile({
+      const newProfile = await saveProfile({
         name,
         email,
         skills: skills.split(",").map(s => s.trim()).filter(Boolean)
@@ -78,7 +78,7 @@ function OnboardingModal() {
         max_apps_per_day: 20,
         outreach_enabled: true,
         recruiter_messaging: true,
-      });
+      }, newProfile.id);
       // ProfileProvider will automatically detect the new user state and hide the modal
     } catch (err) {
       console.error("Failed to complete onboarding:", err);
